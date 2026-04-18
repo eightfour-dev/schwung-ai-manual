@@ -1,0 +1,51 @@
+{
+    "title": "AI Manual",
+    "sections": [
+        {
+            "title": "Setup",
+            "lines": [
+                "Set your OpenAI API key in",
+                "move.local:7700/config under",
+                "the Assistant section.",
+                "",
+                "The model defaults to",
+                "gpt-4o-mini. Whisper-1 is",
+                "used for speech-to-text.",
+                "",
+                "AI Manual and AI Assistant",
+                "share the same key."
+            ]
+        },
+        {
+            "title": "Talking",
+            "lines": [
+                "Hold any pad in the bottom",
+                "row to record your question.",
+                "Release to send.",
+                "",
+                "Top-right pad clears the",
+                "conversation history.",
+                "",
+                "Jog wheel scrolls the",
+                "detailed reply."
+            ]
+        },
+        {
+            "title": "What it knows",
+            "lines": [
+                "Bundled with the official",
+                "Move manual and Schwung's",
+                "user manual. Best for",
+                "shortcuts, menus, and how",
+                "specific features work.",
+                "",
+                "For brainstorming or",
+                "songwriting, use AI",
+                "Assistant instead.",
+                "",
+                "Cost is roughly $0.005 per",
+                "question. Needs Wi-Fi."
+            ]
+        }
+    ]
+}
