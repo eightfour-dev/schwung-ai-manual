@@ -4,10 +4,9 @@
  * transcribes, GPT-4o-mini answers. Reply is split into a short headline
  * (pinned at top) and a scrollable detailed body.
  *
- * Setup: API key is entered at http://move.local:7700/config under
- * "Assistant" and lands at /data/UserData/schwung/secrets/openai_key.txt
- * (mode 0600, shared with AI Assistant). Model + base URL come from
- * shadow_config.json.
+ * Setup: provider, API keys, and model are configured per module at
+ * move.local:7700/modules/ai-manual. Per-module config landed in host
+ * v0.9.8; secrets go to <MODULE_DIR>/secrets/<key>.txt at 0600.
  */
 
 import * as os from 'os';
@@ -34,17 +33,26 @@ const PAD_TALK_MIN = 68;     /* bottom-row pads */
 const PAD_TALK_MAX = 75;
 const PAD_CLEAR = 99;        /* top-right pad clears history */
 
-const DIR = "/data/UserData/schwung/ai-manual";
-const SECRETS_DIR = "/data/UserData/schwung/secrets";
-const WAV_PATH = DIR + "/in.wav";
-const STT_RESP = DIR + "/stt_resp.json";
-const STT_STAT = DIR + "/stt_status.json";
-const CHAT_REQ = DIR + "/chat_req.json";
-const CHAT_RESP = DIR + "/chat_resp.json";
-const CHAT_STAT = DIR + "/chat_status.json";
-const PROBE_RESP = DIR + "/probe_resp";
-const PROBE_STAT = DIR + "/probe_status.json";
-const SHADOW_CFG = "/data/UserData/schwung/shadow_config.json";
+/* Per-module config layout (host 0.9.8+):
+ *   <MODULE_DIR>/config.json           — settings written by schwung-manager
+ *   <MODULE_DIR>/secrets/<key>.txt     — password-typed settings (0600)
+ *   <MODULE_DIR>/settings-schema.json  — schema fragment surfaced in the
+ *                                        web UI; module owns its defaults
+ *   <MODULE_DIR>/cache/                — runtime working files (curl req/resp,
+ *                                        recorded WAV, probe state)
+ */
+const MODULE_DIR  = "/data/UserData/schwung/modules/tools/ai-manual";
+const CONFIG_PATH = MODULE_DIR + "/config.json";
+const SECRETS_DIR = MODULE_DIR + "/secrets";
+const CACHE_DIR   = MODULE_DIR + "/cache";
+const WAV_PATH    = CACHE_DIR + "/in.wav";
+const STT_RESP    = CACHE_DIR + "/stt_resp.json";
+const STT_STAT    = CACHE_DIR + "/stt_status.json";
+const CHAT_REQ    = CACHE_DIR + "/chat_req.json";
+const CHAT_RESP   = CACHE_DIR + "/chat_resp.json";
+const CHAT_STAT   = CACHE_DIR + "/chat_status.json";
+const PROBE_RESP  = CACHE_DIR + "/probe_resp";
+const PROBE_STAT  = CACHE_DIR + "/probe_status.json";
 const MOVE_MANUAL_PATH = "/data/UserData/schwung/shared/move_manual_bundled.json";
 const SCHWUNG_MANUAL_PATH = "/data/UserData/schwung/shared/MANUAL.md";
 
@@ -190,7 +198,7 @@ let lastProbeFrame = -9999;
 const PROBE_RE_INTERVAL_FRAMES = 44 * 10;  /* re-probe every ~10s while offline */
 
 function ensureDir() {
-    if (typeof host_ensure_dir === "function") host_ensure_dir(DIR);
+    if (typeof host_ensure_dir === "function") host_ensure_dir(CACHE_DIR);
 }
 
 function safeUnlink(path) {
@@ -253,8 +261,10 @@ function pollConnectivityProbe() {
     safeUnlink(PROBE_STAT);
 }
 
-function readSecret(filename) {
-    const path = SECRETS_DIR + "/" + filename;
+function readSecret(key) {
+    /* Per-module secrets dir: <MODULE_DIR>/secrets/<key>.txt, mode 0600,
+     * written by schwung-manager when a password-typed setting is set. */
+    const path = SECRETS_DIR + "/" + key + ".txt";
     if (!host_file_exists(path)) return null;
     const s = host_read_file(path);
     return s ? s.trim() : null;
@@ -262,14 +272,14 @@ function readSecret(filename) {
 
 function loadConfig() {
     /* Always read fresh — the user may swap providers or rotate keys in the
-     * web UI without exiting this module. */
-    providerCfg.openai.key = readSecret("openai_key.txt");
-    providerCfg.gemini.key = readSecret("gemini_key.txt");
+     * web UI without exiting this module. Schema keys are module-scoped. */
+    providerCfg.openai.key = readSecret("openai_api_key");
+    providerCfg.gemini.key = readSecret("gemini_api_key");
 
-    if (host_file_exists(SHADOW_CFG)) {
+    if (host_file_exists(CONFIG_PATH)) {
         try {
-            const cfg = JSON.parse(host_read_file(SHADOW_CFG) || "{}");
-            if (cfg.ai_provider) providerCfg.provider = String(cfg.ai_provider).trim();
+            const cfg = JSON.parse(host_read_file(CONFIG_PATH) || "{}");
+            if (cfg.provider) providerCfg.provider = String(cfg.provider).trim();
             if (cfg.openai_model) providerCfg.openai.chatModel = String(cfg.openai_model).trim();
             if (cfg.openai_base_url) {
                 providerCfg.openai.baseUrl = String(cfg.openai_base_url).trim().replace(/\/+$/, "");

@@ -1,0 +1,14 @@
+{
+  "id": "ai-manual",
+  "label": "Manual",
+  "items": [
+    { "key": "provider", "label": "Provider", "type": "enum",
+      "options": ["Gemini", "OpenAI"], "values": ["gemini", "openai"], "default": "gemini" },
+    { "key": "gemini_api_key", "label": "Gemini API Key", "type": "password",
+      "help": "Create a free Gemini API key at", "help_url": "https://aistudio.google.com/" },
+    { "key": "gemini_model", "label": "Gemini Model", "type": "string", "default": "gemini-2.5-flash" },
+    { "key": "openai_api_key", "label": "OpenAI API Key", "type": "password" },
+    { "key": "openai_model", "label": "OpenAI Model", "type": "string", "default": "gpt-4o-mini" },
+    { "key": "openai_base_url", "label": "OpenAI API Base URL", "type": "string", "default": "https://api.openai.com/v1" }
+  ]
+}

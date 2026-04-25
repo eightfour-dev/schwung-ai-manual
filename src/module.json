@@ -1,8 +1,9 @@
 {
     "id": "ai-manual",
     "name": "AI Manual",
-    "version": "0.2.0",
-    "description": "Voice-driven manual for Ableton Move and Schwung. Hold a bottom-row pad to ask, release to send. Replies are split into a short headline + scrollable detail. Set your OpenAI API key at move.local:7700/config.",
+    "version": "0.3.0",
+    "min_host_version": "0.9.8",
+    "description": "Voice-driven manual for Ableton Move and Schwung. Hold a bottom-row pad to ask, release to send. Replies are split into a short headline + scrollable detail. Configure provider + API keys at move.local:7700/modules/ai-manual.",
     "author": "Schwung",
     "hidden": false,
     "component_type": "tool",
